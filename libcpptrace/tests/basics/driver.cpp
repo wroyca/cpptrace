@@ -1,5 +1,6 @@
 #include <sstream>
 #include <stdexcept>
+#include <iostream>
 
 #include <cpptrace/cpptrace.hpp>
 
@@ -11,24 +12,30 @@ int main ()
   using namespace std;
   using namespace cpptrace;
 
-  // Basics.
+  // Basic stacktrace test.
   //
   {
-    ostringstream o;
-    say_hello (o, "World");
-    assert (o.str () == "Hello, World!\n");
+    auto trace = stacktrace::current();
+    assert (!trace.empty());
   }
 
-  // Empty name.
+  // Test that we can create and print a trace.
   //
   try
   {
+    auto trace = stacktrace::current();
     ostringstream o;
-    say_hello (o, "");
-    assert (false);
+    trace.print(o);
+    assert (!o.str().empty());
+
+    // Print the stack trace to stdout
+    cout << "Stack trace:" << endl;
+    trace.print();
+    cout << endl;
   }
-  catch (const invalid_argument& e)
+  catch (const std::exception& e)
   {
-    assert (e.what () == string ("empty name"));
+    // Should not throw
+    assert(false);
   }
 }

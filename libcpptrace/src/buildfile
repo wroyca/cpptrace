@@ -4,13 +4,17 @@ impl_libs = # Implementation dependencies.
 
 # Public headers.
 #
-pub = [dir_path] ../include/cpptrace/
+pub_cpp = [dir_path] ../include/cpptrace/
+pub_c = [dir_path] ../include/ctrace/
 
-include $pub
+include $pub_cpp
+include $pub_c
 
-pub_hdrs = $($pub/ pub_hdrs)
+pub_cpp_hdrs = $($pub_cpp/ pub_cpp_hdrs)
+pub_c_hdrs = $($pub_c/ pub_c_hdrs)
 
-lib{cpptrace}: $pub/{$pub_hdrs}
+lib{cpptrace}: $pub_cpp/{$pub_cpp_hdrs}
+lib{cpptrace}: $pub_c/{$pub_c_hdrs}
 
 # Private headers and sources as well as dependencies.
 #
@@ -26,8 +30,112 @@ src_pfx_src = [dir_path] $src_root/src/
 cxx.poptions =+ "-I$out_pfx_src" "-I$src_pfx_src" \
                 "-I$out_pfx_inc" "-I$src_pfx_inc"
 
-#obja{*}: cxx.poptions += -DCPPTRACE_STATIC_BUILD
-#objs{*}: cxx.poptions += -DCPPTRACE_SHARED_BUILD
+# Neither obja/objs or liba/libs work to define cpptrace_lib_EXPORTS
+# but cxx.poptions does.
+#
+cxx.poptions =+ "-Dcpptrace_lib_EXPORTS"
+
+# obja{*}: cxx.poptions += -DCPPTRACE_STATIC_DEFINE
+# objs{*}: cxx.poptions += -Dcpptrace_lib_EXPORTS
+
+if $config.libcpptrace.get_symbols_with_libbacktrace
+  cxx.libs += -lbacktrace -ldl
+
+if $config.libcpptrace.get_symbols_with_libdl
+  cxx.libs += -ldl
+
+if ($config.libcpptrace.get_symbols_with_addr2line && $cxx.target.class == 'linux')
+  cxx.libs += -ldl
+
+if $config.libcpptrace.get_symbols_with_dbghelp
+  cxx.libs += -ldbghelp
+
+if ($config.libcpptrace.get_symbols_with_libdwarf && $cxx.target.class == 'linux')
+  cxx.libs += -ldl
+
+if ($config.libcpptrace.unwind_with_libunwind && $cxx.target.class != 'macos')
+  cxx.libs += -lunwind
+
+if $config.libcpptrace.unwind_with_dbghelp
+  cxx.libs += -ldbghelp
+
+if $config.libcpptrace.demangle_with_winapi
+  cxx.libs += -ldbghelp
+
+if $config.libcpptrace.get_symbols_with_libbacktrace
+  lib{cpptrace}: cxx.poptions += -DCPPTRACE_GET_SYMBOLS_WITH_LIBBACKTRACE
+
+if $config.libcpptrace.get_symbols_with_libdwarf
+  lib{cpptrace}: cxx.poptions += -DCPPTRACE_GET_SYMBOLS_WITH_LIBDWARF
+
+if $config.libcpptrace.get_symbols_with_libdl
+  lib{cpptrace}: cxx.poptions += -DCPPTRACE_GET_SYMBOLS_WITH_LIBDL
+
+if $config.libcpptrace.get_symbols_with_addr2line
+  lib{cpptrace}: cxx.poptions += -DCPPTRACE_GET_SYMBOLS_WITH_ADDR2LINE
+
+if $config.libcpptrace.get_symbols_with_dbghelp
+  lib{cpptrace}: cxx.poptions += -DCPPTRACE_GET_SYMBOLS_WITH_DBGHELP
+
+if $config.libcpptrace.get_symbols_with_nothing
+  lib{cpptrace}: cxx.poptions += -DCPPTRACE_GET_SYMBOLS_WITH_NOTHING
+
+if $config.libcpptrace.unwind_with_unwind
+  lib{cpptrace}: cxx.poptions += -DCPPTRACE_UNWIND_WITH_UNWIND
+
+if $config.libcpptrace.unwind_with_libunwind
+  lib{cpptrace}: cxx.poptions += -DCPPTRACE_UNWIND_WITH_LIBUNWIND
+
+if $config.libcpptrace.unwind_with_execinfo
+  lib{cpptrace}: cxx.poptions += -DCPPTRACE_UNWIND_WITH_EXECINFO
+
+if $config.libcpptrace.unwind_with_winapi
+  lib{cpptrace}: cxx.poptions += -DCPPTRACE_UNWIND_WITH_WINAPI
+
+if $config.libcpptrace.unwind_with_dbghelp
+  lib{cpptrace}: cxx.poptions += -DCPPTRACE_UNWIND_WITH_DBGHELP
+
+if $config.libcpptrace.unwind_with_nothing
+  lib{cpptrace}: cxx.poptions += -DCPPTRACE_UNWIND_WITH_NOTHING
+
+if $config.libcpptrace.demangle_with_cxxabi
+  lib{cpptrace}: cxx.poptions += -DCPPTRACE_DEMANGLE_WITH_CXXABI
+
+if $config.libcpptrace.demangle_with_winapi
+  lib{cpptrace}: cxx.poptions += -DCPPTRACE_DEMANGLE_WITH_WINAPI
+
+if $config.libcpptrace.demangle_with_nothing
+  lib{cpptrace}: cxx.poptions += -DCPPTRACE_DEMANGLE_WITH_NOTHING
+
+if ($config.libcpptrace.backtrace_path != "")
+  lib{cpptrace}: cxx.poptions += "-DCPPTRACE_BACKTRACE_PATH=\"$config.libcpptrace.backtrace_path\""
+
+if ($config.libcpptrace.hard_max_frames != "")
+  lib{cpptrace}: cxx.poptions += "-DCPPTRACE_HARD_MAX_FRAMES=$config.libcpptrace.hard_max_frames"
+
+if ($config.libcpptrace.addr2line_path != "")
+  lib{cpptrace}: cxx.poptions += "-DCPPTRACE_ADDR2LINE_PATH=\"$config.libcpptrace.addr2line_path\""
+
+if $config.libcpptrace.addr2line_search_system_path
+  lib{cpptrace}: cxx.poptions += -DCPPTRACE_ADDR2LINE_SEARCH_SYSTEM_PATH
+
+if (!$config.libcpptrace.std_format)
+  lib{cpptrace}: cxx.poptions += -DCPPTRACE_NO_STD_FORMAT
+
+if $config.libcpptrace.unprefixed_try_catch
+  lib{cpptrace}: cxx.poptions += -DCPPTRACE_UNPREFIXED_TRY_CATCH
+
+switch $cxx.id
+{
+  case 'gcc'
+  {
+    lib{cpptrace}: cxx.poptions += -DHAS_ATTRIBUTE_PACKED
+  }
+  case 'clang'
+  {
+    lib{cpptrace}: cxx.poptions += -DHAS_ATTRIBUTE_PACKED
+  }
+}
 
 # Export options.
 #
@@ -37,8 +145,8 @@ lib{cpptrace}:
   cxx.export.libs = $intf_libs
 }
 
-#liba{cpptrace}: cxx.export.poptions += -DCPPTRACE_STATIC
-#libs{cpptrace}: cxx.export.poptions += -DCPPTRACE_SHARED
+# liba{cpptrace}: cxx.export.poptions += -DCPPTRACE_STATIC_DEFINE
+# libs{cpptrace}: cxx.export.poptions += -Dcpptrace_lib_EXPORTS
 
 # For pre-releases use the complete version to make sure they cannot
 # be used in place of another pre-release or the final version. See

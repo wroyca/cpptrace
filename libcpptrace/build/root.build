@@ -11,6 +11,50 @@ ixx{*}: extension = ipp
 txx{*}: extension = tpp
 cxx{*}: extension = cpp
 
+# cpptrace bundle some C headers.
+#
+h{*}: extension = h
+
 # The test target for cross-testing (running tests under Wine, etc).
 #
 test.target = $cxx.target
+
+# Configuration variables.
+#
+
+# Build
+#
+config [bool] config.libcpptrace.position_independent_code ?= true
+config [bool] config.libcpptrace.std_format ?= true
+config [bool] config.libcpptrace.unprefixed_try_catch ?= false
+
+# Symbol
+#
+config [bool] config.libcpptrace.get_symbols_with_libbacktrace ?= false
+config [bool] config.libcpptrace.get_symbols_with_libdwarf ?= false
+config [bool] config.libcpptrace.get_symbols_with_libdl ?= false
+config [bool] config.libcpptrace.get_symbols_with_addr2line ?= false
+config [bool] config.libcpptrace.get_symbols_with_dbghelp ?= false
+config [bool] config.libcpptrace.get_symbols_with_nothing ?= false
+
+# Unwinding
+#
+config [bool] config.libcpptrace.unwind_with_unwind ?= false
+config [bool] config.libcpptrace.unwind_with_libunwind ?= false
+config [bool] config.libcpptrace.unwind_with_execinfo ?= false
+config [bool] config.libcpptrace.unwind_with_winapi ?= false
+config [bool] config.libcpptrace.unwind_with_dbghelp ?= false
+config [bool] config.libcpptrace.unwind_with_nothing ?= false
+
+# Demangling
+#
+config [bool] config.libcpptrace.demangle_with_cxxabi ?= false
+config [bool] config.libcpptrace.demangle_with_winapi ?= false
+config [bool] config.libcpptrace.demangle_with_nothing ?= false
+
+# Backend
+#
+config [string] config.libcpptrace.backtrace_path ?= ""
+config [string] config.libcpptrace.hard_max_frames ?= ""
+config [string] config.libcpptrace.addr2line_path ?= ""
+config [bool] config.libcpptrace.addr2line_search_system_path ?= false

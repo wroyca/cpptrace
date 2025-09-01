@@ -1,0 +1,1 @@
+../../upstream/src/prune_symbol.cpp

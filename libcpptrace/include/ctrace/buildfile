@@ -1,12 +1,12 @@
-pub_cpp_hdrs = {hxx ixx txx}{**}
+pub_c_hdrs = {h}{**}
 
-./: $pub_cpp_hdrs
+./: $pub_c_hdrs
 
 # Install into the cpptrace/ subdirectory of, say, /usr/include/
 # recreating subdirectories.
 #
-{hxx ixx txx}{*}:
+{h}{*}:
 {
-  install         = include/cpptrace/
+  install         = include/ctrace/
   install.subdirs = true
 }
