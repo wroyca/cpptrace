@@ -6,6 +6,61 @@ cxx.std = latest
 
 using cxx
 
+tclass = $cxx.target.class
+tsys   = $cxx.target.system
+
+windows = ($tclass == 'windows')
+mingw   = ($tsys == 'mingw32')
+macos   = ($tclass == 'macos')
+linux   = ($tclass == 'linux')
+bsd     = ($tclass == 'bsd')
+unix_like = ($linux || $bsd)
+
+# Select defaults that match the upstream CMake auto-configuration.
+#
+symbols_with_libdwarf = false
+symbols_with_dbghelp = false
+symbols_with_nothing = false
+
+if $mingw
+{
+  symbols_with_libdwarf = true
+  symbols_with_dbghelp = true
+}
+elif $windows
+  symbols_with_dbghelp = true
+elif ($unix_like || $macos)
+  symbols_with_libdwarf = true
+else
+  symbols_with_nothing = true
+
+unwind_with_unwind = false
+unwind_with_execinfo = false
+unwind_with_dbghelp = false
+unwind_with_winapi = false
+unwind_with_nothing = false
+
+if $windows
+  unwind_with_dbghelp = true
+elif $macos
+  unwind_with_execinfo = true
+elif $unix_like
+  unwind_with_unwind = true
+else
+  unwind_with_nothing = true
+
+demangle_with_cxxabi = false
+demangle_with_winapi = false
+demangle_with_nothing = false
+
+if (!$windows || $mingw)
+  demangle_with_cxxabi = true
+elif $windows
+  demangle_with_winapi = true
+
+if (!$demangle_with_cxxabi && !$demangle_with_winapi)
+  demangle_with_nothing = true
+
 hxx{*}: extension = hpp
 ixx{*}: extension = ipp
 txx{*}: extension = tpp
@@ -31,26 +86,26 @@ config [bool] config.libcpptrace.unprefixed_try_catch ?= false
 # Symbol
 #
 config [bool] config.libcpptrace.get_symbols_with_libbacktrace ?= false
-config [bool] config.libcpptrace.get_symbols_with_libdwarf ?= false
+config [bool] config.libcpptrace.get_symbols_with_libdwarf ?= $symbols_with_libdwarf
 config [bool] config.libcpptrace.get_symbols_with_libdl ?= false
 config [bool] config.libcpptrace.get_symbols_with_addr2line ?= false
-config [bool] config.libcpptrace.get_symbols_with_dbghelp ?= false
-config [bool] config.libcpptrace.get_symbols_with_nothing ?= false
+config [bool] config.libcpptrace.get_symbols_with_dbghelp ?= $symbols_with_dbghelp
+config [bool] config.libcpptrace.get_symbols_with_nothing ?= $symbols_with_nothing
 
 # Unwinding
 #
-config [bool] config.libcpptrace.unwind_with_unwind ?= false
+config [bool] config.libcpptrace.unwind_with_unwind ?= $unwind_with_unwind
 config [bool] config.libcpptrace.unwind_with_libunwind ?= false
-config [bool] config.libcpptrace.unwind_with_execinfo ?= false
-config [bool] config.libcpptrace.unwind_with_winapi ?= false
-config [bool] config.libcpptrace.unwind_with_dbghelp ?= false
-config [bool] config.libcpptrace.unwind_with_nothing ?= false
+config [bool] config.libcpptrace.unwind_with_execinfo ?= $unwind_with_execinfo
+config [bool] config.libcpptrace.unwind_with_winapi ?= $unwind_with_winapi
+config [bool] config.libcpptrace.unwind_with_dbghelp ?= $unwind_with_dbghelp
+config [bool] config.libcpptrace.unwind_with_nothing ?= $unwind_with_nothing
 
 # Demangling
 #
-config [bool] config.libcpptrace.demangle_with_cxxabi ?= false
-config [bool] config.libcpptrace.demangle_with_winapi ?= false
-config [bool] config.libcpptrace.demangle_with_nothing ?= false
+config [bool] config.libcpptrace.demangle_with_cxxabi ?= $demangle_with_cxxabi
+config [bool] config.libcpptrace.demangle_with_winapi ?= $demangle_with_winapi
+config [bool] config.libcpptrace.demangle_with_nothing ?= $demangle_with_nothing
 
 # Backend
 #

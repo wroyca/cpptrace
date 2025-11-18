@@ -39,28 +39,50 @@ cxx.poptions =+ "-Dcpptrace_lib_EXPORTS"
 # objs{*}: cxx.poptions += -Dcpptrace_lib_EXPORTS
 
 if $config.libcpptrace.get_symbols_with_libbacktrace
-  cxx.libs += -lbacktrace -ldl
+{
+  lib{cpptrace}: cxx.libs += -lbacktrace -ldl
+  lib{cpptrace}: cxx.export.libs += -lbacktrace -ldl
+}
 
 if $config.libcpptrace.get_symbols_with_libdl
-  cxx.libs += -ldl
+{
+  lib{cpptrace}: cxx.libs += -ldl
+  lib{cpptrace}: cxx.export.libs += -ldl
+}
 
-if ($config.libcpptrace.get_symbols_with_addr2line && $cxx.target.class == 'linux')
-  cxx.libs += -ldl
+if ($config.libcpptrace.get_symbols_with_addr2line && ($cxx.target.class == 'linux' || $cxx.target.class == 'bsd'))
+{
+  lib{cpptrace}: cxx.libs += -ldl
+  lib{cpptrace}: cxx.export.libs += -ldl
+}
 
-if $config.libcpptrace.get_symbols_with_dbghelp
-  cxx.libs += -ldbghelp
+if $config.libcpptrace.get_symbols_with_libdwarf
+{
+  lib{cpptrace}: cxx.libs += -ldwarf -lz -lzstd
+  lib{cpptrace}: cxx.export.libs += -ldwarf -lz -lzstd
 
-if ($config.libcpptrace.get_symbols_with_libdwarf && $cxx.target.class == 'linux')
-  cxx.libs += -ldl
+  if ($cxx.target.class == 'linux' || $cxx.target.class == 'bsd')
+  {
+    lib{cpptrace}: cxx.libs += -ldl
+    lib{cpptrace}: cxx.export.libs += -ldl
+  }
+}
 
 if ($config.libcpptrace.unwind_with_libunwind && $cxx.target.class != 'macos')
-  cxx.libs += -lunwind
+{
+  lib{cpptrace}: cxx.libs += -lunwind
+  lib{cpptrace}: cxx.export.libs += -lunwind
+}
 
-if $config.libcpptrace.unwind_with_dbghelp
-  cxx.libs += -ldbghelp
+need_dbghelp = ($config.libcpptrace.get_symbols_with_dbghelp || \
+                $config.libcpptrace.unwind_with_dbghelp || \
+                $config.libcpptrace.demangle_with_winapi)
 
-if $config.libcpptrace.demangle_with_winapi
-  cxx.libs += -ldbghelp
+if $need_dbghelp
+{
+  lib{cpptrace}: cxx.libs += -ldbghelp
+  lib{cpptrace}: cxx.export.libs += -ldbghelp
+}
 
 if $config.libcpptrace.get_symbols_with_libbacktrace
   lib{cpptrace}: cxx.poptions += -DCPPTRACE_GET_SYMBOLS_WITH_LIBBACKTRACE
@@ -142,7 +164,7 @@ switch $cxx.id
 lib{cpptrace}:
 {
   cxx.export.poptions = "-I$out_pfx_inc" "-I$src_pfx_inc"
-  cxx.export.libs = $intf_libs
+  cxx.export.libs += $intf_libs
 }
 
 # liba{cpptrace}: cxx.export.poptions += -DCPPTRACE_STATIC_DEFINE
