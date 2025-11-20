@@ -14,3 +14,170 @@ package-url: https://github.com/build2-packaging/cpptrace
 package-email: packaging@build2.org ; Mailing list.
 depends: * build2 >= 0.17.0
 depends: * bpkg >= 0.17.0
+
+# CI configuration
+#
+
+builds: -freebsd
+builds: -macos
+builds: -windows
+
+# Fedora builds - Symbol resolution backends
+#
+fedora-libdwarf-builds: sys
+fedora-libdwarf-builds: -bindist
+fedora-libdwarf-builds: -static
+fedora-libdwarf-build-include: linux_fedora*-**
+fedora-libdwarf-build-exclude: **
+fedora-libdwarf-build-config:
+\
+config.libcpptrace.get_symbols_with_libdwarf=true
+?sys:libdwarf-devel
+?sys:zlib-devel
+?sys:libzstd-devel
+\
+
+fedora-libbacktrace-builds: sys
+fedora-libbacktrace-builds: -bindist
+fedora-libbacktrace-builds: -static
+fedora-libbacktrace-build-include: linux_fedora*-**
+fedora-libbacktrace-build-exclude: **
+fedora-libbacktrace-build-config:
+\
+config.libcpptrace.get_symbols_with_libbacktrace=true
+?sys:libbacktrace-devel
+\
+
+fedora-libdl-builds: sys
+fedora-libdl-builds: -bindist
+fedora-libdl-builds: -static
+fedora-libdl-build-include: linux_fedora*-**
+fedora-libdl-build-exclude: **
+fedora-libdl-build-config:
+\
+config.libcpptrace.get_symbols_with_libdl=true
+\
+
+fedora-addr2line-builds: sys
+fedora-addr2line-builds: -bindist
+fedora-addr2line-builds: -static
+fedora-addr2line-build-include: linux_fedora*-**
+fedora-addr2line-build-exclude: **
+fedora-addr2line-build-config:
+\
+config.libcpptrace.get_symbols_with_addr2line=true
+?sys:binutils
+\
+
+# Fedora builds - Unwinding backends
+#
+fedora-unwind-builds: sys
+fedora-unwind-builds: -bindist
+fedora-unwind-builds: -static
+fedora-unwind-build-include: linux_fedora*-**
+fedora-unwind-build-exclude: **
+fedora-unwind-build-config:
+\
+config.libcpptrace.unwind_with_unwind=true
+\
+
+fedora-libunwind-builds: sys
+fedora-libunwind-builds: -bindist
+fedora-libunwind-builds: -static
+fedora-libunwind-build-include: linux_fedora*-**
+fedora-libunwind-build-exclude: **
+fedora-libunwind-build-config:
+\
+config.libcpptrace.unwind_with_libunwind=true
+?sys:libunwind-devel
+\
+
+fedora-execinfo-builds: sys
+fedora-execinfo-builds: -bindist
+fedora-execinfo-builds: -static
+fedora-execinfo-build-include: linux_fedora*-**
+fedora-execinfo-build-exclude: **
+fedora-execinfo-build-config:
+\
+config.libcpptrace.unwind_with_execinfo=true
+\
+
+# Debian builds - Symbol resolution backends
+#
+debian-libdwarf-builds: sys
+debian-libdwarf-builds: -bindist
+debian-libdwarf-builds: -static
+debian-libdwarf-build-include: linux_debian*-**
+debian-libdwarf-build-exclude: **
+debian-libdwarf-build-config:
+\
+config.libcpptrace.get_symbols_with_libdwarf=true
+?sys:libdwarf-dev
+?sys:zlib1g-dev
+?sys:libzstd-dev
+\
+
+debian-libbacktrace-builds: sys
+debian-libbacktrace-builds: -bindist
+debian-libbacktrace-builds: -static
+debian-libbacktrace-build-include: linux_debian*-**
+debian-libbacktrace-build-exclude: **
+debian-libbacktrace-build-config:
+\
+config.libcpptrace.get_symbols_with_libbacktrace=true
+?sys:libbacktrace-dev
+\
+
+debian-libdl-builds: sys
+debian-libdl-builds: -bindist
+debian-libdl-builds: -static
+debian-libdl-build-include: linux_debian*-**
+debian-libdl-build-exclude: **
+debian-libdl-build-config:
+\
+config.libcpptrace.get_symbols_with_libdl=true
+\
+
+debian-addr2line-builds: sys
+debian-addr2line-builds: -bindist
+debian-addr2line-builds: -static
+debian-addr2line-build-include: linux_debian*-**
+debian-addr2line-build-exclude: **
+debian-addr2line-build-config:
+\
+config.libcpptrace.get_symbols_with_addr2line=true
+?sys:binutils
+\
+
+# Debian builds - Unwinding backends
+#
+debian-unwind-builds: sys
+debian-unwind-builds: -bindist
+debian-unwind-builds: -static
+debian-unwind-build-include: linux_debian*-**
+debian-unwind-build-exclude: **
+debian-unwind-build-config:
+\
+config.libcpptrace.unwind_with_unwind=true
+\
+
+debian-libunwind-builds: sys
+debian-libunwind-builds: -bindist
+debian-libunwind-builds: -static
+debian-libunwind-build-include: linux_debian*-**
+debian-libunwind-build-exclude: **
+debian-libunwind-build-config:
+\
+config.libcpptrace.unwind_with_libunwind=true
+?sys:libunwind-dev
+\
+
+debian-execinfo-builds: sys
+debian-execinfo-builds: -bindist
+debian-execinfo-builds: -static
+debian-execinfo-build-include: linux_debian*-**
+debian-execinfo-build-exclude: **
+debian-execinfo-build-config:
+\
+config.libcpptrace.unwind_with_execinfo=true
+\
