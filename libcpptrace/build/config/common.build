@@ -1,0 +1,85 @@
+# Defaults aligned with upstream CMake auto-configuration.
+#
+symbols_with_libdwarf = false
+symbols_with_dbghelp  = false
+symbols_with_nothing  = false
+
+if ($cxx.target.system == 'mingw32')
+{
+  symbols_with_libdwarf = true
+  symbols_with_dbghelp  = true
+}
+elif ($cxx.target.class == 'windows')
+  symbols_with_dbghelp = true
+elif ($cxx.target.class == 'linux' || $cxx.target.class == 'bsd' || $cxx.target.class == 'macos')
+  symbols_with_libdwarf = true
+else
+  symbols_with_nothing = true
+
+# Unwinding defaults.
+#
+unwind_with_unwind   = false
+unwind_with_execinfo = false
+unwind_with_dbghelp  = false
+unwind_with_winapi   = false
+unwind_with_nothing  = false
+
+if ($cxx.target.class == 'windows')
+  unwind_with_dbghelp = true
+elif ($cxx.target.class == 'macos')
+  unwind_with_execinfo = true
+elif ($cxx.target.class == 'linux' || $cxx.target.class == 'bsd')
+  unwind_with_unwind = true
+else
+  unwind_with_nothing = true
+
+# Demangling defaults.
+#
+demangle_with_cxxabi  = false
+demangle_with_winapi  = false
+demangle_with_nothing = false
+
+if ($cxx.target.class != 'windows' || $cxx.target.system == 'mingw32')
+  demangle_with_cxxabi = true
+elif ($cxx.target.class == 'windows')
+  demangle_with_winapi = true
+
+if (!$demangle_with_cxxabi && !$demangle_with_winapi)
+  demangle_with_nothing = true
+
+# Build configuration.
+#
+config [bool] config.libcpptrace.position_independent_code      ?= true
+config [bool] config.libcpptrace.std_format                     ?= true
+config [bool] config.libcpptrace.unprefixed_try_catch           ?= false
+
+# Symbol resolution.
+#
+config [bool] config.libcpptrace.get_symbols_with_libbacktrace  ?= false
+config [bool] config.libcpptrace.get_symbols_with_libdwarf      ?= $symbols_with_libdwarf
+config [bool] config.libcpptrace.get_symbols_with_libdl         ?= false
+config [bool] config.libcpptrace.get_symbols_with_addr2line     ?= false
+config [bool] config.libcpptrace.get_symbols_with_dbghelp       ?= $symbols_with_dbghelp
+config [bool] config.libcpptrace.get_symbols_with_nothing       ?= $symbols_with_nothing
+
+# Unwinding.
+#
+config [bool] config.libcpptrace.unwind_with_unwind             ?= $unwind_with_unwind
+config [bool] config.libcpptrace.unwind_with_libunwind          ?= false
+config [bool] config.libcpptrace.unwind_with_execinfo           ?= $unwind_with_execinfo
+config [bool] config.libcpptrace.unwind_with_winapi             ?= $unwind_with_winapi
+config [bool] config.libcpptrace.unwind_with_dbghelp            ?= $unwind_with_dbghelp
+config [bool] config.libcpptrace.unwind_with_nothing            ?= $unwind_with_nothing
+
+# Demangling.
+#
+config [bool] config.libcpptrace.demangle_with_cxxabi           ?= $demangle_with_cxxabi
+config [bool] config.libcpptrace.demangle_with_winapi           ?= $demangle_with_winapi
+config [bool] config.libcpptrace.demangle_with_nothing          ?= $demangle_with_nothing
+
+# Backend configuration.
+#
+config [string] config.libcpptrace.backtrace_path               ?= ""
+config [string] config.libcpptrace.hard_max_frames              ?= ""
+config [string] config.libcpptrace.addr2line_path               ?= ""
+config [bool]   config.libcpptrace.addr2line_search_system_path ?= false

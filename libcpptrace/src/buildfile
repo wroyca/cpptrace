@@ -1,24 +1,23 @@
 intf_libs = # Interface dependencies.
 impl_libs = # Implementation dependencies.
-#import xxxx_libs += libhello%lib{hello}
 
 # Public headers.
 #
+pub_c   = [dir_path] ../include/ctrace/
 pub_cpp = [dir_path] ../include/cpptrace/
-pub_c = [dir_path] ../include/ctrace/
 
-include $pub_cpp
 include $pub_c
+include $pub_cpp
 
+pub_c_hdrs   = $($pub_c/ pub_c_hdrs)
 pub_cpp_hdrs = $($pub_cpp/ pub_cpp_hdrs)
-pub_c_hdrs = $($pub_c/ pub_c_hdrs)
 
-lib{cpptrace}: $pub_cpp/{$pub_cpp_hdrs}
 lib{cpptrace}: $pub_c/{$pub_c_hdrs}
+lib{cpptrace}: $pub_cpp/{$pub_cpp_hdrs}
 
-# Private headers and sources as well as dependencies.
+# Private headers, sources, and dependencies.
 #
-lib{cpptrace}: {hxx ixx txx cxx}{**} $impl_libs $intf_libs
+lib{cpptrace}: {hxx cxx}{**}
 
 # Build options.
 #
@@ -30,60 +29,62 @@ src_pfx_src = [dir_path] $src_root/src/
 cxx.poptions =+ "-I$out_pfx_src" "-I$src_pfx_src" \
                 "-I$out_pfx_inc" "-I$src_pfx_inc"
 
-# Neither obja/objs or liba/libs work to define cpptrace_lib_EXPORTS
-# but cxx.poptions does.
+# Export symbol visibility control.
 #
-cxx.poptions =+ "-Dcpptrace_lib_EXPORTS"
+cxx.poptions += "-Dcpptrace_lib_EXPORTS"
 
-# obja{*}: cxx.poptions += -DCPPTRACE_STATIC_DEFINE
-# objs{*}: cxx.poptions += -Dcpptrace_lib_EXPORTS
-
+# Optional library dependencies.
+#
 if $config.libcpptrace.get_symbols_with_libbacktrace
 {
-  lib{cpptrace}: cxx.libs += -lbacktrace -ldl
+  lib{cpptrace}: cxx.libs        += -lbacktrace -ldl
   lib{cpptrace}: cxx.export.libs += -lbacktrace -ldl
 }
 
 if $config.libcpptrace.get_symbols_with_libdl
 {
-  lib{cpptrace}: cxx.libs += -ldl
+  lib{cpptrace}: cxx.libs        += -ldl
   lib{cpptrace}: cxx.export.libs += -ldl
 }
 
 if ($config.libcpptrace.get_symbols_with_addr2line && ($cxx.target.class == 'linux' || $cxx.target.class == 'bsd'))
 {
-  lib{cpptrace}: cxx.libs += -ldl
+  lib{cpptrace}: cxx.libs        += -ldl
   lib{cpptrace}: cxx.export.libs += -ldl
 }
 
 if $config.libcpptrace.get_symbols_with_libdwarf
 {
-  lib{cpptrace}: cxx.libs += -ldwarf -lz -lzstd
+  import intf_libs += libdwarf%lib{dwarf}
+
+  lib{cpptrace}: cxx.libs        += -ldwarf -lz -lzstd
   lib{cpptrace}: cxx.export.libs += -ldwarf -lz -lzstd
 
   if ($cxx.target.class == 'linux' || $cxx.target.class == 'bsd')
   {
-    lib{cpptrace}: cxx.libs += -ldl
+    lib{cpptrace}: cxx.libs        += -ldl
     lib{cpptrace}: cxx.export.libs += -ldl
   }
 }
 
 if ($config.libcpptrace.unwind_with_libunwind && $cxx.target.class != 'macos')
 {
-  lib{cpptrace}: cxx.libs += -lunwind
+  lib{cpptrace}: cxx.libs        += -lunwind
   lib{cpptrace}: cxx.export.libs += -lunwind
 }
 
 need_dbghelp = ($config.libcpptrace.get_symbols_with_dbghelp || \
-                $config.libcpptrace.unwind_with_dbghelp || \
+                $config.libcpptrace.unwind_with_dbghelp      || \
                 $config.libcpptrace.demangle_with_winapi)
 
 if $need_dbghelp
 {
-  lib{cpptrace}: cxx.libs += -ldbghelp
+  lib{cpptrace}: cxx.libs        += -ldbghelp
   lib{cpptrace}: cxx.export.libs += -ldbghelp
 }
 
+# Preprocessor feature flags.
+#
 if $config.libcpptrace.get_symbols_with_libbacktrace
   lib{cpptrace}: cxx.poptions += -DCPPTRACE_GET_SYMBOLS_WITH_LIBBACKTRACE
 
@@ -147,6 +148,8 @@ if (!$config.libcpptrace.std_format)
 if $config.libcpptrace.unprefixed_try_catch
   lib{cpptrace}: cxx.poptions += -DCPPTRACE_UNPREFIXED_TRY_CATCH
 
+# Compiler-specific options.
+#
 switch $cxx.id
 {
   case 'gcc'
@@ -159,6 +162,10 @@ switch $cxx.id
   }
 }
 
+# Import libs.
+#
+lib{cpptrace}: $impl_libs $intf_libs
+
 # Export options.
 #
 lib{cpptrace}:
@@ -166,9 +173,6 @@ lib{cpptrace}:
   cxx.export.poptions = "-I$out_pfx_inc" "-I$src_pfx_inc"
   cxx.export.libs += $intf_libs
 }
-
-# liba{cpptrace}: cxx.export.poptions += -DCPPTRACE_STATIC_DEFINE
-# libs{cpptrace}: cxx.export.poptions += -Dcpptrace_lib_EXPORTS
 
 # For pre-releases use the complete version to make sure they cannot
 # be used in place of another pre-release or the final version. See
@@ -181,4 +185,4 @@ else
 
 # Don't install private headers.
 #
-{hxx ixx txx}{*}: install = false
+{h hxx}{*}: install = false
