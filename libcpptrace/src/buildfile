@@ -79,8 +79,16 @@ need_dbghelp = ($config.libcpptrace.get_symbols_with_dbghelp || \
 
 if $need_dbghelp
 {
-  lib{cpptrace}: cxx.libs        += -ldbghelp
-  lib{cpptrace}: cxx.export.libs += -ldbghelp
+  if $cxx.target.class == 'windows'
+  {
+    lib{cpptrace}: cxx.libs        += DbgHelp.lib
+    lib{cpptrace}: cxx.export.libs += DbgHelp.lib
+  }
+  else
+  {
+    lib{cpptrace}: cxx.libs        += -ldbghelp
+    lib{cpptrace}: cxx.export.libs += -ldbghelp
+  }
 }
 
 # Preprocessor feature flags.
